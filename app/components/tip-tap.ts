@@ -1,11 +1,10 @@
 import Component from '@glimmer/component';
-import {Editor, Content} from '@tiptap/core';
+import { Editor, Content } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import {action, set} from '@ember/object';
+import { action, set } from '@ember/object';
 import localForage from 'localforage';
 
-interface TipTapArgs {
-}
+interface TipTapArgs {}
 
 export default class TipTap extends Component<TipTapArgs> {
   editor?: Editor;
@@ -24,11 +23,10 @@ export default class TipTap extends Component<TipTapArgs> {
       onSelectionUpdate() {
         self.updateAttributes();
       },
-      async onUpdate({editor}) {
+      async onUpdate({ editor }) {
         await localForage.setItem(self.forageKey, editor.getJSON());
-        await localForage.setItem(self.forageKey, editor.getHTML());
-      }
-    })
+      },
+    });
   }
 
   @action
@@ -81,6 +79,22 @@ export default class TipTap extends Component<TipTapArgs> {
     this.editor?.chain().focus().clearContent().run();
   }
 
+  @action
+  print() {
+    const html = this.getHTML();
+    const printWindow = window.open();
+
+    if (printWindow === null) {
+      alert('Could not print');
+      return;
+    }
+
+    printWindow.document.open('text/html');
+    printWindow.document.write(html);
+    printWindow.focus();
+    printWindow.print();
+    printWindow.document.close(); //funktioniert nicht :*(
+  }
 
   updateAttributes() {
     set(this, 'isBoldActive', this.isActive('bold'));
@@ -93,12 +107,10 @@ export default class TipTap extends Component<TipTapArgs> {
   }
 
   async loadContent(): Promise<Content> {
-    return await localForage.getItem(this.forageKey) as Content ?? '';
+    return ((await localForage.getItem(this.forageKey)) as Content) ?? '';
   }
 
   getHTML(): string {
     return this.editor?.getHTML() ?? '';
   }
-
-
 }
